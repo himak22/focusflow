@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="112" fill="#6366F1"/>
+  <!-- Círculo del timer -->
+  <circle cx="256" cy="240" r="140" fill="none" stroke="white" stroke-width="24" stroke-opacity="0.3"/>
+  <circle cx="256" cy="240" r="140" fill="none" stroke="white" stroke-width="24"
+    stroke-dasharray="659" stroke-dashoffset="165"
+    transform="rotate(-90 256 240)"/>
+  <!-- Centro: texto FF -->
+  <text x="256" y="268" text-anchor="middle" font-family="system-ui, sans-serif"
+    font-weight="700" font-size="96" fill="white" letter-spacing="-4">FF</text>
+  <!-- Punto pomodoro -->
+  <circle cx="256" cy="420" r="18" fill="white" fill-opacity="0.9"/>
+</svg>
