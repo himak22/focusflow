@@ -8,7 +8,8 @@
 - Input inline en la lista (brain dump).
 - Atajo `Enter` para guardar instantáneamente, sin clicks.
 - Campos: título + **duración personalizada (opcional)** + `isQuickWin` (toggle ⚡).
-- La duración personalizada se especifica en **minutos** (ej: 45). Si no se pone, usa el default de Settings (`workTime`).
+- **Duración**: acepta múltiples formatos: `90` (minutos), `2h` (2 horas), `1.5h` (1 hora y media). La app convierte automáticamente a minutos.
+- Si no se pone duración, usa el default de Settings (`workTime`).
 - Las tareas se etiquetan con `tags: string[]` (V1: `inbox` | `today`).
 
 ### 1.2 Estados de tarea
@@ -53,7 +54,10 @@
 ## 2. Modo Enfoque (Focus Mode)
 
 - Seleccionar **una única tarea activa** la convierte en `in-progress`.
-- **Duración por tarea**: si la tarea tiene `duration` definido, el timer se ajusta automáticamente a esos minutos al seleccionarla (solo si el timer está detenido).
+- **Session Picker**: si la tarea tiene `duration` definido y el timer está detenido, al hacer click aparece un picker inline con opciones de sesiones pre-calculadas:
+  - Ejemplo para 2h: "120 min", "2×55 min", "3×35 min", "4×25 min" (con breaks automáticos entre sesiones).
+  - El usuario elige cómo dividir el tiempo. **Máximo 4 opciones** para evitar parálisis por decisión.
+  - Si el timer está corriendo, el picker no aparece (no se interrumpe una sesión activa).
 - El resto de tareas pendientes se **ocultan** para reducir distracción.
 - Toggle "Ver tareas" muestra la lista con opacidad reducida (60%) sin salir del modo enfoque.
 - Botón "Salir del enfoque" deselecciona y vuelve todo a `pending`.
@@ -253,8 +257,10 @@ break_running ──completed──► work_ready ──start──► work_runn
 - **Micro-animations en subtareas**: `active:scale-75` en checkbox de subtarea para feedback táctil inmediato.
 - **Eliminadas tabs de navegación**: solo había una vista ("Tareas"), eran ruido visual innecesario.
 
-### 2026-04-29 (Duración por tarea)
+### 2026-04-29 (Duración por tarea + Session Picker)
 - Campo `duration?: number` añadido al modelo `Task`.
-- Al crear tarea: input numérico para duración en minutos (opcional).
-- Al seleccionar tarea: si tiene `duration` y el timer está detenido, el timer se ajusta automáticamente.
+- **Parseo inteligente de duración**: acepta `90`, `2h`, `1.5h`. Conversión automática a minutos.
+- **Session Picker**: al seleccionar tarea con duración, aparece picker inline con opciones pre-calculadas (1-4 sesiones, redondeadas a múltiplo de 5).
+- El usuario elige cómo dividir el tiempo total en sesiones pomodoro. Máximo 4 opciones para evitar parálisis por decisión.
+- Si el timer está corriendo, el picker no aparece (no interrumpe sesión activa).
 - Indicador visual `⏱ X min` en TaskItem cuando la tarea tiene duración personalizada.

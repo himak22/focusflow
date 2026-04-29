@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import type { AppStore, AppState, Task, TimerState, BackupData } from './types'
+import type { AppStore, Task, TimerState, BackupData } from './types'
 import { isTimerRunning, getTimerMode } from './types'
 import { timerService } from '@/features/timer/services'
 
@@ -91,27 +91,13 @@ export const useAppStore = create<AppStore>()(
       },
 
       selectTask: (id) => {
-        const { setTaskStatus, selectedTaskId, tasks, timer } = get()
+        const { setTaskStatus, selectedTaskId } = get()
         if (id === null && selectedTaskId) {
           setTaskStatus(selectedTaskId, 'pending')
         } else if (id !== null) {
           setTaskStatus(id, 'in-progress')
         }
-
-        const newState: Partial<AppState> = { selectedTaskId: id }
-
-        // Si se seleccionó una tarea con duration personalizado y el timer está detenido, ajustar
-        if (id !== null) {
-          const task = tasks.find((t) => t.id === id)
-          if (task?.duration && (timer.status === 'idle' || timer.status === 'work_ready')) {
-            newState.timer = {
-              ...timer,
-              remainingSeconds: task.duration * 60,
-            }
-          }
-        }
-
-        set(newState)
+        set({ selectedTaskId: id })
       },
 
       // ─── Subtask Actions ──────────────────────────────────────────────────

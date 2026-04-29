@@ -1,5 +1,6 @@
 import { useState, type KeyboardEvent } from 'react'
 import { useAppStore } from '@/store'
+import { parseDuration } from '@/features/timer/lib/duration'
 
 interface TaskInputProps {
   tag: string
@@ -7,7 +8,7 @@ interface TaskInputProps {
 
 export function TaskInput({ tag }: TaskInputProps) {
   const [value, setValue] = useState('')
-  const [duration, setDuration] = useState('')
+  const [durationRaw, setDurationRaw] = useState('')
   const [isQuickWin, setIsQuickWin] = useState(false)
   const addTask = useAppStore((s) => s.addTask)
 
@@ -23,14 +24,14 @@ export function TaskInput({ tag }: TaskInputProps) {
       tags: [tag],
     }
 
-    const dur = parseInt(duration, 10)
-    if (!Number.isNaN(dur) && dur > 0) {
+    const dur = parseDuration(durationRaw)
+    if (dur !== null) {
       payload.duration = dur
     }
 
     addTask(payload)
     setValue('')
-    setDuration('')
+    setDurationRaw('')
     setIsQuickWin(false)
   }
 
@@ -51,20 +52,16 @@ export function TaskInput({ tag }: TaskInputProps) {
           className="flex-1 bg-transparent border-b border-border px-1 py-2 text-sm outline-none placeholder:text-muted-foreground focus:border-primary transition-colors"
         />
 
-        {/* Duración personalizada */}
-        <div className="flex items-center gap-1">
-          <input
-            type="number"
-            min={1}
-            max={180}
-            value={duration}
-            onChange={(e) => setDuration(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="min"
-            className="w-12 bg-transparent border-b border-border text-xs text-center outline-none placeholder:text-muted-foreground/50 focus:border-primary transition-colors py-2"
-            title="Duración en minutos (opcional)"
-          />
-        </div>
+        {/* Duración personalizada — acepta "90", "2h", "1.5h" */}
+        <input
+          type="text"
+          value={durationRaw}
+          onChange={(e) => setDurationRaw(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder="2h"
+          className="w-14 bg-transparent border-b border-border text-xs text-center outline-none placeholder:text-muted-foreground/50 focus:border-primary transition-colors py-2"
+          title="Duración: 90, 2h, 1.5h..."
+        />
 
         <button
           onClick={() => setIsQuickWin((v) => !v)}
@@ -80,7 +77,7 @@ export function TaskInput({ tag }: TaskInputProps) {
 
       {/* Hint */}
       <p className="text-[10px] text-muted-foreground/60">
-        Enter para guardar · Duración opcional (usa el default si no la ponés)
+        Enter para guardar · Duración opcional: 90, 2h, 1.5h...
       </p>
     </div>
   )

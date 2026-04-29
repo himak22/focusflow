@@ -1,6 +1,7 @@
 import { useState, type KeyboardEvent, useRef, useEffect } from 'react'
-import { useAppStore } from '@/store'
+import { useAppStore, isTimerRunning } from '@/store'
 import type { Task } from '@/store'
+import { SessionPicker } from '@/features/timer/components/SessionPicker'
 
 interface TaskItemProps {
   task: Task
@@ -22,6 +23,7 @@ export function TaskItem({ task, isSelected }: TaskItemProps) {
   const [editPomos, setEditPomos] = useState(task.estimatedPomodoros)
   const [expanded, setExpanded] = useState(false)
   const [subtaskInput, setSubtaskInput] = useState('')
+  const [showPicker, setShowPicker] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
 
   const completedSubtasks = task.subtasks.filter((st) => st.completed).length
@@ -50,13 +52,24 @@ export function TaskItem({ task, isSelected }: TaskItemProps) {
     }
   }
 
+  const timerStatus = useAppStore((s) => s.timer.status)
+
   function handleSelect() {
     if (isSelected) {
       selectTask(null)
       setTaskStatus(task.id, 'pending')
-    } else {
-      selectTask(task.id)
+      setShowPicker(false)
+      return
     }
+
+    // Si la tarea tiene duration y el timer está detenido, mostrar picker
+    if (task.duration && !isTimerRunning(timerStatus)) {
+      setShowPicker(true)
+      return
+    }
+
+    // Comportamiento normal
+    selectTask(task.id)
   }
 
   function startEdit() {
@@ -216,6 +229,17 @@ export function TaskItem({ task, isSelected }: TaskItemProps) {
           </div>
         )}
       </div>
+
+      {/* ─── Session Picker ────────────────────────────────────────────── */}
+      {showPicker && task.duration && (
+        <div className="px-3 pb-2 pl-11">
+          <SessionPicker
+            taskId={task.id}
+            duration={task.duration}
+            onSelect={() => setShowPicker(false)}
+          />
+        </div>
+      )}
 
       {/* ─── Sección de micro-pasos ────────────────────────────────────── */}
       {(expanded || hasSubtasks) && (
