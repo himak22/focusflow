@@ -36,6 +36,17 @@
 - `Enter` guarda, `Escape` cancela, `onBlur` guarda automáticamente.
 - Botón **✎** visible en hover como alternativa al doble click.
 
+### 1.7 Micro-tareas (Subtareas)
+- Cada tarea puede tener una lista de **micro-pasos** (`subtasks`).
+- Objetivo: descomponer tareas abrumadoras (ej: *"Hacer la declaración de la renta"* → Buscar DNI → Descargar borrador → Revisar gastos → Enviar).
+- Cada micro-paso completado da una micro-dosis de dopamina.
+- **UI**: indicador `X/Y micro-pasos` clickable para expandir/colapsar.
+- **En modo enfoque**: las subtareas se expanden automáticamente.
+- Checkboxes pequeños para marcar como completada.
+- Input inline `+ micro-paso (Enter)` para agregar nuevas.
+- Botón **✕** al hover para eliminar micro-paso individual.
+- Progreso visual: contador completadas / total.
+
 ---
 
 ## 2. Modo Enfoque (Focus Mode)
@@ -199,3 +210,14 @@ break_running ──completed──► work_ready ──start──► work_runn
 ### 2026-04-29 (Edición inline)
 - Doble click en título o contador 🍅 entra modo edición inline.
 - Permite editar título y pomodoros estimados. Enter guarda, Escape cancela.
+
+### 2026-04-29 (Service Worker)
+- Reemplazado SW manual por `vite-plugin-pwa` + Workbox.
+- Precachea automáticamente todos los assets de build (JS, CSS, fuentes).
+- La PWA ahora funciona **offline** correctamente.
+
+### 2026-04-29 (Micro-tareas)
+- Añadido campo `subtasks` al modelo `Task`.
+- UI en TaskItem: checkboxes, input inline, progreso `X/Y micro-pasos`.
+- Auto-expansión en modo enfoque.
+- Tests: 3 tests para addSubtask / toggleSubtask / deleteSubtask.

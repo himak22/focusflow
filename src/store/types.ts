@@ -1,5 +1,11 @@
 // ─── Tasks ───────────────────────────────────────────────────────────────────
 
+export interface Subtask {
+  id: string
+  title: string
+  completed: boolean
+}
+
 export interface Task {
   id: string
   title: string
@@ -10,6 +16,7 @@ export interface Task {
   completedPomodoros: number
   isQuickWin: boolean
   tags: string[]          // V1: 'inbox' | 'today'
+  subtasks: Subtask[]     // micro-pasos para descomponer tareas abrumadoras
 }
 
 // ─── Pomodoro / Sessions ──────────────────────────────────────────────────────
@@ -79,11 +86,16 @@ export interface AppState {
 
 export interface AppActions {
   // Tasks
-  addTask: (task: Omit<Task, 'id' | 'createdAt' | 'lastWorkedAt' | 'completedPomodoros'>) => void
+  addTask: (task: Omit<Task, 'id' | 'createdAt' | 'lastWorkedAt' | 'completedPomodoros' | 'subtasks'>) => void
   updateTask: (id: string, patch: Partial<Omit<Task, 'id'>>) => void
   deleteTask: (id: string) => void
   setTaskStatus: (id: string, status: Task['status']) => void
   selectTask: (id: string | null) => void
+
+  // Subtasks
+  addSubtask: (taskId: string, title: string) => void
+  toggleSubtask: (taskId: string, subtaskId: string) => void
+  deleteSubtask: (taskId: string, subtaskId: string) => void
 
   // Timer — públicas (llamadas por UI)
   startTimer: () => void

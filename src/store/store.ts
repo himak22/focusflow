@@ -59,6 +59,7 @@ export const useAppStore = create<AppStore>()(
           createdAt: toIso(),
           lastWorkedAt: null,
           completedPomodoros: 0,
+          subtasks: [],
           ...taskInput,
         }
         set((s) => ({ tasks: [...s.tasks, task] }))
@@ -97,6 +98,44 @@ export const useAppStore = create<AppStore>()(
           setTaskStatus(id, 'in-progress')
         }
         set({ selectedTaskId: id })
+      },
+
+      // ─── Subtask Actions ──────────────────────────────────────────────────
+      addSubtask: (taskId, title) => {
+        const trimmed = title.trim()
+        if (!trimmed) return
+        set((s) => ({
+          tasks: s.tasks.map((t) =>
+            t.id === taskId
+              ? { ...t, subtasks: [...t.subtasks, { id: uuid(), title: trimmed, completed: false }] }
+              : t
+          ),
+        }))
+      },
+
+      toggleSubtask: (taskId, subtaskId) => {
+        set((s) => ({
+          tasks: s.tasks.map((t) =>
+            t.id === taskId
+              ? {
+                  ...t,
+                  subtasks: t.subtasks.map((st) =>
+                    st.id === subtaskId ? { ...st, completed: !st.completed } : st
+                  ),
+                }
+              : t
+          ),
+        }))
+      },
+
+      deleteSubtask: (taskId, subtaskId) => {
+        set((s) => ({
+          tasks: s.tasks.map((t) =>
+            t.id === taskId
+              ? { ...t, subtasks: t.subtasks.filter((st) => st.id !== subtaskId) }
+              : t
+          ),
+        }))
       },
 
       // ─── Timer Actions — públicas (UI) ────────────────────────────────────
@@ -303,11 +342,14 @@ export const useAppStore = create<AppStore>()(
 
         // ─── Versión 0 → 1: migrar modelo de datos ────────────────────────
         if (version < 1) {
-          // 1. Tasks: source → tags
+          // 1. Tasks: source → tags + subtasks default
           if (Array.isArray(state.tasks)) {
             state.tasks = state.tasks.map((task: any) => {
               if (!Array.isArray(task.tags)) {
                 task.tags = task.source ? [task.source] : ['inbox']
+              }
+              if (!Array.isArray(task.subtasks)) {
+                task.subtasks = []
               }
               return task
             })

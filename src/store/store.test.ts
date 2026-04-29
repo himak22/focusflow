@@ -102,6 +102,44 @@ describe('task actions', () => {
   })
 })
 
+// ─── Subtasks ─────────────────────────────────────────────────────────────────
+
+describe('subtask actions', () => {
+  beforeEach(resetStore)
+
+  it('addSubtask appends a subtask to a task', () => {
+    useAppStore.getState().addTask({ title: 'T', status: 'pending', estimatedPomodoros: 1, isQuickWin: false, tags: ['today'] })
+    const taskId = useAppStore.getState().tasks[0].id
+    useAppStore.getState().addSubtask(taskId, 'Buscar DNI')
+    const subtasks = useAppStore.getState().tasks[0].subtasks
+    expect(subtasks).toHaveLength(1)
+    expect(subtasks[0].title).toBe('Buscar DNI')
+    expect(subtasks[0].completed).toBe(false)
+  })
+
+  it('toggleSubtask flips completed flag', () => {
+    useAppStore.getState().addTask({ title: 'T', status: 'pending', estimatedPomodoros: 1, isQuickWin: false, tags: ['today'] })
+    const taskId = useAppStore.getState().tasks[0].id
+    useAppStore.getState().addSubtask(taskId, 'Step 1')
+    const subtaskId = useAppStore.getState().tasks[0].subtasks[0].id
+    useAppStore.getState().toggleSubtask(taskId, subtaskId)
+    expect(useAppStore.getState().tasks[0].subtasks[0].completed).toBe(true)
+    useAppStore.getState().toggleSubtask(taskId, subtaskId)
+    expect(useAppStore.getState().tasks[0].subtasks[0].completed).toBe(false)
+  })
+
+  it('deleteSubtask removes the subtask', () => {
+    useAppStore.getState().addTask({ title: 'T', status: 'pending', estimatedPomodoros: 1, isQuickWin: false, tags: ['today'] })
+    const taskId = useAppStore.getState().tasks[0].id
+    useAppStore.getState().addSubtask(taskId, 'Step 1')
+    useAppStore.getState().addSubtask(taskId, 'Step 2')
+    const subtaskId = useAppStore.getState().tasks[0].subtasks[0].id
+    useAppStore.getState().deleteSubtask(taskId, subtaskId)
+    expect(useAppStore.getState().tasks[0].subtasks).toHaveLength(1)
+    expect(useAppStore.getState().tasks[0].subtasks[0].title).toBe('Step 2')
+  })
+})
+
 // ─── Timer ──────────────────────────────────────────────────────────────────
 
 describe('timer actions', () => {
@@ -238,7 +276,7 @@ describe('loadBackup', () => {
     useAppStore.getState().loadBackup({
       version: 1,
       exportedAt: new Date().toISOString(),
-      tasks: [{ id: 'new', title: 'New', status: 'pending', createdAt: new Date().toISOString(), lastWorkedAt: null, estimatedPomodoros: 2, completedPomodoros: 0, isQuickWin: true, tags: ['inbox'] }],
+      tasks: [{ id: 'new', title: 'New', status: 'pending', createdAt: new Date().toISOString(), lastWorkedAt: null, estimatedPomodoros: 2, completedPomodoros: 0, isQuickWin: true, tags: ['inbox'], subtasks: [] }],
       sessions: [],
       settings: { workTime: 15, breakTime: 3, soundEnabled: false, darkMode: true, ambientSound: 'off' },
       pomodorosToday: 0,
