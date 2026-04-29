@@ -91,10 +91,12 @@ export function TaskItem({ task, isSelected }: TaskItemProps) {
       setIsEditing(false)
       return
     }
-    updateTask(task.id, {
-      title: trimmed,
-      estimatedPomodoros: Math.max(1, Math.round(editPomos)),
-    })
+    const patch: Partial<Omit<Task, 'id'>> = { title: trimmed }
+    // Solo actualizar pomodoros si la tarea NO tiene duración definida
+    if (!task.duration) {
+      patch.estimatedPomodoros = Math.max(1, Math.round(editPomos))
+    }
+    updateTask(task.id, patch)
     setIsEditing(false)
   }
 
@@ -149,18 +151,22 @@ export function TaskItem({ task, isSelected }: TaskItemProps) {
               onBlur={saveEdit}
               className="flex-1 min-w-0 bg-transparent border-b border-primary text-sm outline-none"
             />
-            <input
-              type="number"
-              min={1}
-              max={99}
-              value={editPomos}
-              onChange={(e) => setEditPomos(Number(e.target.value))}
-              onKeyDown={handleKeyDown}
-              onBlur={saveEdit}
-              className="w-12 bg-transparent border-b border-primary text-sm text-center outline-none"
-              title="Pomodoros estimados"
-            />
-            <span className="text-xs text-muted-foreground">🍅</span>
+            {!task.duration && (
+              <>
+                <input
+                  type="number"
+                  min={1}
+                  max={99}
+                  value={editPomos}
+                  onChange={(e) => setEditPomos(Number(e.target.value))}
+                  onKeyDown={handleKeyDown}
+                  onBlur={saveEdit}
+                  className="w-12 bg-transparent border-b border-primary text-sm text-center outline-none"
+                  title="Pomodoros estimados"
+                />
+                <span className="text-xs text-muted-foreground">🍅</span>
+              </>
+            )}
           </div>
         ) : (
           <>
