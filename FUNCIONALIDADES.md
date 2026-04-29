@@ -8,7 +8,7 @@
 - Input inline en la lista (brain dump).
 - Atajo `Enter` para guardar instantáneamente, sin clicks.
 - Campos: título + **duración personalizada (opcional)** + `isQuickWin` (toggle ⚡).
-- **Duración**: acepta múltiples formatos: `90` (minutos), `2h` (2 horas), `1.5h` (1 hora y media). La app convierte automáticamente a minutos.
+- **Duración**: dos inputs separados — uno para **horas** y otro para **minutos**. La app suma automáticamente. Ambos son opcionales.
 - Si no se pone duración, usa el default de Settings (`workTime`).
 - Las tareas se etiquetan con `tags: string[]` (V1: `inbox` | `today`).
 

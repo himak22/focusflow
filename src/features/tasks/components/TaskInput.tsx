@@ -1,6 +1,5 @@
 import { useState, type KeyboardEvent } from 'react'
 import { useAppStore } from '@/store'
-import { parseDuration } from '@/features/timer/lib/duration'
 
 interface TaskInputProps {
   tag: string
@@ -8,7 +7,8 @@ interface TaskInputProps {
 
 export function TaskInput({ tag }: TaskInputProps) {
   const [value, setValue] = useState('')
-  const [durationRaw, setDurationRaw] = useState('')
+  const [hours, setHours] = useState('')
+  const [minutes, setMinutes] = useState('')
   const [isQuickWin, setIsQuickWin] = useState(false)
   const addTask = useAppStore((s) => s.addTask)
 
@@ -24,14 +24,17 @@ export function TaskInput({ tag }: TaskInputProps) {
       tags: [tag],
     }
 
-    const dur = parseDuration(durationRaw)
-    if (dur !== null) {
-      payload.duration = dur
+    const h = parseInt(hours, 10)
+    const m = parseInt(minutes, 10)
+    const totalMinutes = (Number.isNaN(h) ? 0 : h * 60) + (Number.isNaN(m) ? 0 : m)
+    if (totalMinutes > 0) {
+      payload.duration = totalMinutes
     }
 
     addTask(payload)
     setValue('')
-    setDurationRaw('')
+    setHours('')
+    setMinutes('')
     setIsQuickWin(false)
   }
 
@@ -52,16 +55,37 @@ export function TaskInput({ tag }: TaskInputProps) {
           className="flex-1 bg-transparent border-b border-border px-1 py-2 text-sm outline-none placeholder:text-muted-foreground focus:border-primary transition-colors"
         />
 
-        {/* Duración personalizada — acepta "90", "2h", "1.5h" */}
-        <input
-          type="text"
-          value={durationRaw}
-          onChange={(e) => setDurationRaw(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder="2h"
-          className="w-14 bg-transparent border-b border-border text-xs text-center outline-none placeholder:text-muted-foreground/50 focus:border-primary transition-colors py-2"
-          title="Duración: 90, 2h, 1.5h..."
-        />
+        {/* Horas */}
+        <div className="flex items-center gap-0.5">
+          <input
+            type="number"
+            min={0}
+            max={10}
+            value={hours}
+            onChange={(e) => setHours(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder="h"
+            className="w-10 bg-transparent border-b border-border text-xs text-center outline-none placeholder:text-muted-foreground/50 focus:border-primary transition-colors py-2"
+            title="Horas"
+          />
+          <span className="text-[10px] text-muted-foreground">h</span>
+        </div>
+
+        {/* Minutos */}
+        <div className="flex items-center gap-0.5">
+          <input
+            type="number"
+            min={0}
+            max={59}
+            value={minutes}
+            onChange={(e) => setMinutes(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder="m"
+            className="w-10 bg-transparent border-b border-border text-xs text-center outline-none placeholder:text-muted-foreground/50 focus:border-primary transition-colors py-2"
+            title="Minutos"
+          />
+          <span className="text-[10px] text-muted-foreground">m</span>
+        </div>
 
         <button
           onClick={() => setIsQuickWin((v) => !v)}
@@ -77,7 +101,7 @@ export function TaskInput({ tag }: TaskInputProps) {
 
       {/* Hint */}
       <p className="text-[10px] text-muted-foreground/60">
-        Enter para guardar · Duración opcional: 90, 2h, 1.5h...
+        Enter para guardar · Tiempo opcional (usa el default si no lo ponés)
       </p>
     </div>
   )
