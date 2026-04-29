@@ -93,7 +93,8 @@ break_running ──completed──► work_ready ──start──► work_runn
 - **"Solo 5 min"** en HeroTimer: inicia sesión de 5 minutos **sin mutar** la configuración global.
 
 ### 3.4 Visual
-- **Timer circular** en HeroTimer (tamaño grande) y CompactTimer en header (tamaño pequeño).
+- **Timer circular** en HeroTimer (tamaño grande, 160px) — el elemento visual dominante de la pantalla.
+- **CompactTimer** en header (tamaño pequeño, 36px) para contexto persistente.
 - Barra de progreso con color: naranja para work, azul para break.
 - Contador de pomodoros completados hoy en el header.
 
@@ -240,3 +241,12 @@ break_running ──completed──► work_ready ──start──► work_runn
 - Input numérico en TimerControls para ingresar minutos manualmente (1-180 min).
 - Funciona junto a los botones rápidos (5m, 15m, 25m, 50m).
 - Validación con toast de error si el valor está fuera de rango.
+
+### 2026-04-29 (Mejoras de diseño)
+- **Timer agrandado**: de 96px a 160px en HeroTimer — ahora es el foco visual dominante.
+- **Jerarquía modo enfoque**: título activo en `text-xl font-bold`, badge "🎯 Modo enfoque" con tracking más amplio.
+- **"Solo 5 min" más grande**: `text-sm font-semibold` con padding generoso y borde redondeado.
+- **Checkbox rediseñado**: de círculo vacío a cuadrado redondeado (`rounded-md`), más reconocible como checkbox.
+- **Empty state con personalidad**: emoji grande + mensaje amigable según contexto (inbox vs today).
+- **Micro-animations en subtareas**: `active:scale-75` en checkbox de subtarea para feedback táctil inmediato.
+- **Eliminadas tabs de navegación**: solo había una vista ("Tareas"), eran ruido visual innecesario.

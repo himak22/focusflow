@@ -47,11 +47,23 @@ export function TaskList() {
 
         <div className="flex flex-col gap-1 mt-1">
           {pending.length === 0 && completed.length === 0 && (
-            <p className="text-sm text-muted-foreground text-center py-6">
-              {tag === 'inbox'
-                ? 'Inbox vacío — sin ansiedad 🎉'
-                : 'Sin tareas para hoy — añadí una arriba'}
-            </p>
+            <div className="flex flex-col items-center gap-3 py-8 text-center">
+              <span className="text-4xl">
+                {tag === 'inbox' ? '🎉' : '✨'}
+              </span>
+              <div className="flex flex-col gap-1">
+                <p className="text-sm font-medium text-foreground">
+                  {tag === 'inbox'
+                    ? '¡Inbox vacío!'
+                    : '¿Qué querés lograr hoy?'}
+                </p>
+                <p className="text-xs text-muted-foreground max-w-[240px]">
+                  {tag === 'inbox'
+                    ? 'Sin nada pendiente dando vueltas en la cabeza.'
+                    : 'Escribí tu primera tarea arriba. Si te cuesta empezar, probá con algo de 5 min.'}
+                </p>
+              </div>
+            </div>
           )}
 
           {pending.map((task) => (
@@ -72,7 +84,7 @@ export function TaskList() {
                   key={task.id}
                   className="flex items-center gap-3 px-3 py-2 opacity-50"
                 >
-                  <span className="w-5 h-5 rounded-full bg-success/30 flex items-center justify-center text-xs">✓</span>
+                  <span className="w-5 h-5 rounded-md bg-success/30 flex items-center justify-center text-xs">✓</span>
                   <span className="text-sm line-through text-muted-foreground">{task.title}</span>
                 </div>
               ))}

@@ -35,40 +35,40 @@ export function HeroTimer() {
     <section className="border-b border-border bg-gradient-to-b from-muted/30 to-transparent">
       <div className="max-w-2xl mx-auto px-4 py-6 flex gap-6 items-start">
 
-        {/* Circular timer — izquierda */}
+        {/* Circular timer — izquierda, GRANDE */}
         <CircularProgress
           progress={progress}
-          size={96}
-          strokeWidth={6}
+          size={160}
+          strokeWidth={8}
           color={color}
           trackColor={color}
         >
           <div className="flex flex-col items-center leading-none">
             <span
-              className="text-lg font-mono font-bold tabular-nums"
+              className="text-3xl font-mono font-bold tabular-nums"
               style={{ color }}
             >
               {formatTime(timer.remainingSeconds)}
             </span>
-            <span className="text-[9px] text-muted-foreground mt-0.5">
+            <span className="text-[11px] text-muted-foreground mt-1 uppercase tracking-wider">
               {mode === 'work' ? 'trabajo' : 'break'}
             </span>
           </div>
         </CircularProgress>
 
         {/* Derecha: tarea activa + controles */}
-        <div className="flex-1 flex flex-col gap-3 min-w-0">
-          {/* Tarea activa */}
+        <div className="flex-1 flex flex-col gap-3 min-w-0 pt-2">
+          {/* Tarea activa — JERARQUÍA VISUAL FUERTE */}
           {activeTask ? (
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0">
-                <p className="text-xs font-medium text-primary uppercase tracking-wide mb-0.5">
-                  Modo enfoque
+                <p className="text-[10px] font-bold text-primary uppercase tracking-widest mb-1">
+                  🎯 Modo enfoque
                 </p>
-                <p className="text-base font-semibold text-foreground truncate">
+                <p className="text-xl font-bold text-foreground leading-tight truncate">
                   {activeTask.title}
                 </p>
-                <p className="text-xs text-muted-foreground mt-0.5">
+                <p className="text-sm text-muted-foreground mt-1">
                   {activeTask.completedPomodoros}/{activeTask.estimatedPomodoros} 🍅
                   {activeTask.isQuickWin && ' · ⚡ Quick win'}
                 </p>
@@ -76,21 +76,22 @@ export function HeroTimer() {
               <button
                 onClick={() => selectTask(null)}
                 title="Salir del modo enfoque"
-                className="text-xs text-muted-foreground hover:text-foreground transition-colors flex-shrink-0 mt-1"
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors flex-shrink-0 mt-5"
               >
                 ✕
               </button>
             </div>
           ) : (
-            <div className="flex items-center justify-between">
-              <p className="text-sm text-muted-foreground">
+            <div className="flex flex-col gap-3">
+              <p className="text-base text-muted-foreground">
                 Seleccioná una tarea para el modo enfoque
               </p>
               <button
                 onClick={handleFiveMin}
-                className="text-xs font-medium px-2.5 py-1 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition-colors whitespace-nowrap"
+                className="self-start text-sm font-semibold px-4 py-2 rounded-xl bg-primary/10 text-primary hover:bg-primary/20 active:scale-95 transition-all flex items-center gap-2"
               >
-                Solo 5 min ⚡
+                <span>⚡</span>
+                <span>Solo 5 min</span>
               </button>
             </div>
           )}
