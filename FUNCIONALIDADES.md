@@ -136,16 +136,24 @@ break_running ──completed──► work_ready ──start──► work_runn
 | Tecla | Acción | Condición |
 |-------|--------|-----------|
 | `Space` | Start / Pause timer | No estás escribiendo en input |
-| `Esc` | Cierra overlay → sale de focus mode | Siempre |
+| `Esc` | Cierra ayuda → overlay → focus mode | Siempre |
 | `/` | Enfoca input de nueva tarea | No estás escribiendo en input |
 | `R` | Reset timer | No estás escribiendo en input |
+| `?` | Mostrar / ocultar ayuda de atajos | No estás escribiendo en input |
+
+### 6.3 Ayuda de atajos (Keyboard Help)
+- Presionar `?` abre un modal con todos los atajos de teclado.
+- Diseño limpio: tecla en `kbd` + descripción alineada a la derecha.
+- Footer indica que los atajos solo funcionan fuera de campos de texto.
+- `Esc` cierra el modal.
+- Click fuera del modal también lo cierra.
 
 ---
 
 ## 7. Configuración (Settings)
 
 - **Timer**: sliders para work (5-90 min) y break (1-30 min).
-- **Sonido**: toggle efectos de sonido + selector ruido de fondo (off / marrón / blanco).
+- **Sonido**: toggle efectos de sonido + **botones de preview** para probar "pop" (tarea completada) y "ding" (pomodoro completado) sin tener que completar una tarea real + selector ruido de fondo (off / marrón / blanco).
 - **Apariencia**: toggle modo oscuro.
 - **Datos**: Exportar JSON / Importar JSON (backup completo con validación de campos).
 
@@ -221,3 +229,8 @@ break_running ──completed──► work_ready ──start──► work_runn
 - UI en TaskItem: checkboxes, input inline, progreso `X/Y micro-pasos`.
 - Auto-expansión en modo enfoque.
 - Tests: 3 tests para addSubtask / toggleSubtask / deleteSubtask.
+
+### 2026-04-29 (Keyboard Help + Sound Preview)
+- **Keyboard Help**: presionar `?` abre modal con todos los atajos. `Esc` o click fuera lo cierra.
+- **Sound Preview**: botones "Probar pop" y "Probar ding" en Settings para escuchar sonidos sin completar tareas.
+- Refactor: funciones `playPop` / `playDing` extraídas a `feedback/lib/soundFX.ts` para reutilización.

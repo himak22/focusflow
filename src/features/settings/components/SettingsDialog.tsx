@@ -9,6 +9,7 @@ import {
 } from '@/components/ui/dialog'
 import { Slider } from '@/components/ui/slider'
 import { exportBackup, parseBackup } from '../lib/backup'
+import { playPop, playDing } from '@/features/feedback/lib/soundFX'
 
 function Toggle({
   checked,
@@ -139,6 +140,20 @@ export function SettingsDialog() {
               onChange={(v) => updateSettings({ soundEnabled: v })}
               label="Efectos de sonido"
             />
+            <div className="flex gap-2">
+              <button
+                onClick={() => playPop()}
+                className="flex-1 py-1.5 rounded-lg text-xs font-medium bg-muted hover:bg-muted/80 text-foreground transition-colors"
+              >
+                Probar "pop" 🔊
+              </button>
+              <button
+                onClick={() => playDing()}
+                className="flex-1 py-1.5 rounded-lg text-xs font-medium bg-muted hover:bg-muted/80 text-foreground transition-colors"
+              >
+                Probar "ding" 🔔
+              </button>
+            </div>
             <div className="flex flex-col gap-1.5">
               <span className="text-sm text-foreground">Ruido de fondo</span>
               <div className="flex gap-2">

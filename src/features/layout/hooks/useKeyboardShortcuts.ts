@@ -1,14 +1,20 @@
 import { useEffect, useCallback } from 'react'
 import { useAppStore } from '@/store'
 
+interface UseKeyboardShortcutsOptions {
+  showHelp: boolean
+  setShowHelp: (v: boolean) => void
+}
+
 /**
  * Atajos de teclado globales para reducir fricción (crítico para TDAH).
  * Reglas:
  * - Space: Start/Pause timer (solo cuando NO hay un input/textarea enfocado)
- * - Esc: Salir de focus mode, o cerrar overlays abiertos
+ * - Esc: Salir de focus mode, o cerrar overlays abiertos, o cerrar help
  * - /: Enfocar el input de nueva tarea (solo cuando NO hay un input enfocado)
+ * - ?: Mostrar/ocultar ayuda de atajos (solo cuando NO hay un input enfocado)
  */
-export function useKeyboardShortcuts() {
+export function useKeyboardShortcuts({ showHelp, setShowHelp }: UseKeyboardShortcutsOptions) {
   const timerStatus = useAppStore((s) => s.timer.status)
   const startTimer = useAppStore((s) => s.startTimer)
   const pauseTimer = useAppStore((s) => s.pauseTimer)
@@ -28,19 +34,33 @@ export function useKeyboardShortcuts() {
 
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
-      // Si hay overlay de transición abierto, Esc lo cierra
-      if (transition && e.key === 'Escape') {
+      // Escape: cerrar help primero, luego transition, luego focus mode
+      if (e.key === 'Escape') {
         e.preventDefault()
-        clearTransition()
+        if (showHelp) {
+          setShowHelp(false)
+          return
+        }
+        if (transition) {
+          clearTransition()
+          return
+        }
+        if (selectedTaskId) {
+          selectTask(null)
+          return
+        }
         return
       }
 
-      // Si hay una tarea seleccionada, Escape la deselecciona (sale de focus mode)
-      if (e.key === 'Escape' && selectedTaskId) {
+      // ?: Toggle ayuda de atajos (solo si NO estamos escribiendo)
+      if (e.key === '?' && !isTyping()) {
         e.preventDefault()
-        selectTask(null)
+        setShowHelp(!showHelp)
         return
       }
+
+      // Si el help está abierto, no procesar otros atajos (evita accidentes)
+      if (showHelp) return
 
       // Space: Start/Pause timer (solo si NO estamos escribiendo)
       if (e.key === ' ' && !isTyping()) {
@@ -76,11 +96,13 @@ export function useKeyboardShortcuts() {
     timerStatus,
     selectedTaskId,
     transition,
+    showHelp,
     startTimer,
     pauseTimer,
     resetTimer,
     selectTask,
     clearTransition,
+    setShowHelp,
     isTyping,
   ])
 }
