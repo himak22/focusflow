@@ -1,13 +1,5 @@
 /// <reference lib="webworker" />
-
-type MainToWorker =
-  | { type: 'START'; remainingSeconds: number }
-  | { type: 'PAUSE' }
-  | { type: 'RESET'; remainingSeconds: number }
-
-type WorkerToMain =
-  | { type: 'TICK'; remainingSeconds: number }
-  | { type: 'COMPLETED' }
+import type { MainToWorker, WorkerToMain } from './timer.types'
 
 let remaining = 0
 let intervalId: ReturnType<typeof setInterval> | null = null

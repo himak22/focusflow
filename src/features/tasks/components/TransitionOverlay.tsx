@@ -1,16 +1,17 @@
 import { useEffect, useRef, useState } from 'react'
 import { useAppStore } from '@/store'
 import { fireConfetti } from '@/features/feedback'
+import { usePrefersReducedMotion } from '@/lib/usePrefersReducedMotion'
 
 const AUTO_DISMISS_MS = 4000
 
 export function TransitionOverlay() {
   const transition = useAppStore((s) => s.transition)
   const clearTransition = useAppStore((s) => s.clearTransition)
-  const setTimerMode = useAppStore((s) => s.setTimerMode)
-  const startTimer = useAppStore((s) => s.startTimer)
+  const startBreak = useAppStore((s) => s.startBreak)
   const [progress, setProgress] = useState(100)
   const firedRef = useRef(false)
+  const reducedMotion = usePrefersReducedMotion()
 
   // Confetti al aparecer
   useEffect(() => {
@@ -51,8 +52,7 @@ export function TransitionOverlay() {
   }
 
   function handleTakeBreak() {
-    setTimerMode('break')
-    startTimer()
+    startBreak()
     clearTransition()
   }
 
@@ -68,12 +68,12 @@ export function TransitionOverlay() {
         {/* Barra de cuenta regresiva */}
         <div
           className="absolute top-0 inset-x-0 h-0.5 bg-success transition-none"
-          style={{ width: `${progress}%`, transition: 'width 50ms linear' }}
+          style={{ width: `${progress}%`, transition: reducedMotion ? 'none' : 'width 50ms linear' }}
         />
 
         <div className="p-8 flex flex-col items-center gap-6 text-center">
           {/* Ícono celebración */}
-          <div className="text-6xl animate-bounce">
+          <div className={['text-6xl', reducedMotion ? '' : 'animate-bounce'].join(' ')}>
             ✅
           </div>
 

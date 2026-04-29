@@ -27,13 +27,13 @@ function Toggle({
         aria-checked={checked}
         onClick={() => onChange(!checked)}
         className={[
-          'relative w-10 h-6 rounded-full transition-colors',
+          'relative w-10 h-6 rounded-full transition-colors overflow-hidden',
           checked ? 'bg-primary' : 'bg-muted-foreground/30',
         ].join(' ')}
       >
         <span
           className={[
-            'absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-transform',
+            'absolute top-1 left-0 w-4 h-4 bg-white rounded-full shadow transition-transform',
             checked ? 'translate-x-5' : 'translate-x-1',
           ].join(' ')}
         />
@@ -78,7 +78,6 @@ export function SettingsDialog() {
       }
     }
     reader.readAsText(file)
-    // reset para permitir reimportar el mismo archivo
     e.target.value = ''
   }
 
@@ -154,7 +153,7 @@ export function SettingsDialog() {
                         : 'border-border text-muted-foreground hover:text-foreground',
                     ].join(' ')}
                   >
-                    {type === 'off' ? 'Desactivado' : type === 'brown' ? 'Marrón' : 'Blanco'}
+                    {type === 'off' ? 'Desact.' : type === 'brown' ? 'Marrón' : 'Blanco'}
                   </button>
                 ))}
               </div>
@@ -193,9 +192,7 @@ export function SettingsDialog() {
                 onChange={handleImport}
               />
             </div>
-            {importError && (
-              <p className="text-xs text-destructive">{importError}</p>
-            )}
+            {importError && <p className="text-xs text-destructive">{importError}</p>}
             {importOk && (
               <p className="text-xs text-[#10B981]">Datos importados correctamente</p>
             )}

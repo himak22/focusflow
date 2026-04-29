@@ -1,27 +1,23 @@
-import type { Task } from '@/store'
-
-type Source = Task['source']
-
 interface SourceToggleProps {
-  value: Source
-  onChange: (source: Source) => void
+  value: string
+  onChange: (tag: string) => void
 }
 
 export function SourceToggle({ value, onChange }: SourceToggleProps) {
   return (
     <div className="flex rounded-lg border border-border p-1 w-fit">
-      {(['inbox', 'today'] as Source[]).map((source) => (
+      {(['inbox', 'today'] as const).map((tag) => (
         <button
-          key={source}
-          onClick={() => onChange(source)}
+          key={tag}
+          onClick={() => onChange(tag)}
           className={[
             'px-4 py-1.5 rounded-md text-sm font-medium transition-colors capitalize',
-            value === source
+            value === tag
               ? 'bg-primary text-white shadow-sm'
               : 'text-muted-foreground hover:text-foreground',
           ].join(' ')}
         >
-          {source === 'inbox' ? 'Inbox' : 'Hoy'}
+          {tag === 'inbox' ? 'Inbox' : 'Hoy'}
         </button>
       ))}
     </div>

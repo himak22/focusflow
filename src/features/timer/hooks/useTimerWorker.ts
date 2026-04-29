@@ -1,71 +1,44 @@
-import { useEffect, useRef } from 'react'
+import { useEffect } from 'react'
 import { useAppStore } from '@/store'
-
-type WorkerToMain =
-  | { type: 'TICK'; remainingSeconds: number }
-  | { type: 'COMPLETED' }
+import { timerService } from '@/features/timer/services'
+import { isTimerRunning } from '@/store/types'
 
 /**
- * Gestiona el ciclo de vida del Web Worker del timer.
- * Observa el store y sincroniza el estado con el worker.
+ * Glue entre React lifecycle y TimerService.
+ * Inicializa el worker y sincroniza el estado del store con el worker.
  * Debe llamarse una sola vez en el nivel raíz de la app.
  */
 export function useTimerWorker() {
-  const workerRef = useRef<Worker | null>(null)
-  const prevIsRunningRef = useRef(false)
-
-  const isRunning = useAppStore((s) => s.timer.isRunning)
-  const remainingSeconds = useAppStore((s) => s.timer.remainingSeconds)
-  const syncTimerSeconds = useAppStore((s) => s.syncTimerSeconds)
-  const completePomodoro = useAppStore((s) => s.completePomodoro)
-
-  // Crear worker al montar, terminar al desmontar
+  // Inicializar TimerService con callbacks al store
   useEffect(() => {
-    const worker = new Worker(
-      new URL('../workers/timer.worker.ts', import.meta.url),
-      { type: 'module' }
-    )
-
-    worker.onmessage = (e: MessageEvent<WorkerToMain>) => {
-      if (e.data.type === 'TICK') {
-        syncTimerSeconds(e.data.remainingSeconds)
-      } else if (e.data.type === 'COMPLETED') {
-        completePomodoro()
-      }
-    }
-
-    workerRef.current = worker
-
-    return () => {
-      worker.terminate()
-      workerRef.current = null
-    }
-  // Las acciones del store son referencias estables — no necesitan ir en deps
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    const store = useAppStore.getState()
+    timerService.init({
+      onTick: (remainingSeconds) => store._syncTimerSeconds(remainingSeconds),
+      onCompleted: () => store._completePomodoro(),
+    })
+    return () => timerService.terminate()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // Sincronizar isRunning con el worker
-  useEffect(() => {
-    const worker = workerRef.current
-    if (!worker) return
+  const status = useAppStore((s) => s.timer.status)
 
-    if (isRunning && !prevIsRunningRef.current) {
-      worker.postMessage({ type: 'START', remainingSeconds })
-    } else if (!isRunning && prevIsRunningRef.current) {
-      worker.postMessage({ type: 'PAUSE' })
+  // Enviar START/PAUSE al worker según el estado del timer
+  useEffect(() => {
+    const store = useAppStore.getState()
+    if (isTimerRunning(status)) {
+      timerService.start(store.timer.remainingSeconds)
+    } else {
+      timerService.pause()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status])
 
-    prevIsRunningRef.current = isRunning
-  // remainingSeconds intencionalmente omitido: solo queremos reaccionar al cambio de isRunning
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isRunning])
-
-  // Sincronizar segundos cuando el timer NO está corriendo (reset / cambio de duración)
+  // Sincronizar remainingSeconds cuando el timer NO está corriendo
+  // (ej: reset, cambio de duración, cambio de modo)
   useEffect(() => {
-    const worker = workerRef.current
-    if (!worker || isRunning) return
-    worker.postMessage({ type: 'RESET', remainingSeconds })
-  // isRunning intencionalmente omitido: solo queremos reaccionar al cambio de remainingSeconds
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [remainingSeconds])
+    if (isTimerRunning(status)) return
+    const store = useAppStore.getState()
+    timerService.reset(store.timer.remainingSeconds)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status])
 }

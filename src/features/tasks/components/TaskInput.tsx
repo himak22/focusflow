@@ -1,14 +1,11 @@
 import { useState, type KeyboardEvent } from 'react'
 import { useAppStore } from '@/store'
-import type { Task } from '@/store'
-
-type Source = Task['source']
 
 interface TaskInputProps {
-  source: Source
+  tag: string
 }
 
-export function TaskInput({ source }: TaskInputProps) {
+export function TaskInput({ tag }: TaskInputProps) {
   const [value, setValue] = useState('')
   const [isQuickWin, setIsQuickWin] = useState(false)
   const addTask = useAppStore((s) => s.addTask)
@@ -23,7 +20,7 @@ export function TaskInput({ source }: TaskInputProps) {
       status: 'pending',
       estimatedPomodoros: 1,
       isQuickWin,
-      source,
+      tags: [tag],
     })
 
     setValue('')
@@ -38,6 +35,7 @@ export function TaskInput({ source }: TaskInputProps) {
         onChange={(e) => setValue(e.target.value)}
         onKeyDown={handleKeyDown}
         placeholder="Nueva tarea… (Enter para guardar)"
+        data-task-input
         className="flex-1 bg-transparent border-b border-border px-1 py-2 text-sm outline-none placeholder:text-muted-foreground focus:border-primary transition-colors"
       />
       <button

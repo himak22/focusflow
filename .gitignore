@@ -23,3 +23,9 @@ dist-ssr
 *.sln
 *.sw?
 .vercel
+
+# Coverage reports
+coverage
+
+# Agent artifacts
+.atl

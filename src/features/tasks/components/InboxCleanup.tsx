@@ -21,7 +21,7 @@ export function InboxCleanup({ tasks, onClose }: InboxCleanupProps) {
   }
 
   function handleToday() {
-    updateTask(current.id, { source: 'today' })
+    updateTask(current.id, { tags: ['today'] })
     next()
   }
 

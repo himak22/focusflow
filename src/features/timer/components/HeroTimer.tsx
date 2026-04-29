@@ -1,6 +1,7 @@
-import { useAppStore } from '@/store'
+import { useAppStore, getTimerMode, isTimerRunning } from '@/store'
 import { CircularProgress } from './CircularProgress'
 import { TimerControls } from './TimerControls'
+import { copyFocusMessage } from '../lib/focusMessage'
 
 const WORK_COLOR = '#F97316'
 const BREAK_COLOR = '#3B82F6'
@@ -18,18 +19,16 @@ export function HeroTimer() {
   const workTime = useAppStore((s) => s.settings.workTime)
   const breakTime = useAppStore((s) => s.settings.breakTime)
   const selectTask = useAppStore((s) => s.selectTask)
-  const setTimerDuration = useAppStore((s) => s.setTimerDuration)
-  const startTimer = useAppStore((s) => s.startTimer)
+  const startQuickSession = useAppStore((s) => s.startQuickSession)
 
   const activeTask = tasks.find((t) => t.id === selectedTaskId) ?? null
-  const isWork = timer.mode === 'work'
-  const totalSeconds = isWork ? workTime * 60 : breakTime * 60
+  const mode = getTimerMode(timer.status)
+  const totalSeconds = mode === 'work' ? workTime * 60 : breakTime * 60
   const progress = totalSeconds > 0 ? timer.remainingSeconds / totalSeconds : 1
-  const color = isWork ? WORK_COLOR : BREAK_COLOR
+  const color = mode === 'work' ? WORK_COLOR : BREAK_COLOR
 
   function handleFiveMin() {
-    setTimerDuration(5)
-    startTimer()
+    startQuickSession(5)
   }
 
   return (
@@ -52,7 +51,7 @@ export function HeroTimer() {
               {formatTime(timer.remainingSeconds)}
             </span>
             <span className="text-[9px] text-muted-foreground mt-0.5">
-              {isWork ? 'trabajo' : 'break'}
+              {mode === 'work' ? 'trabajo' : 'break'}
             </span>
           </div>
         </CircularProgress>
@@ -98,6 +97,18 @@ export function HeroTimer() {
 
           {/* Controles */}
           <TimerControls />
+
+          {/* Distraction Shield — solo en focus mode + timer corriendo */}
+          {activeTask && isTimerRunning(timer.status) && mode === 'work' && (
+            <button
+              onClick={() => copyFocusMessage(timer.remainingSeconds)}
+              className="self-start flex items-center gap-2 px-3 py-2 rounded-lg bg-primary/10 text-primary text-xs font-medium hover:bg-primary/20 active:scale-95 transition-all"
+              title="Copiar mensaje para Slack/Teams/WhatsApp"
+            >
+              <span className="text-sm">📋</span>
+              <span>Copiar mensaje de enfoque</span>
+            </button>
+          )}
         </div>
       </div>
     </section>

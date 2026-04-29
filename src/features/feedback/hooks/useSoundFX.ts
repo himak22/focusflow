@@ -10,17 +10,20 @@ function getAudioContext(): AudioContext | null {
   if (!sharedCtx) {
     sharedCtx = new AudioContext()
   }
-  // Reanudar si el browser lo suspendió (política de autoplay)
-  if (sharedCtx.state === 'suspended') {
-    sharedCtx.resume()
-  }
   return sharedCtx
 }
 
+async function ensureRunning(ctx: AudioContext): Promise<void> {
+  if (ctx.state === 'suspended') {
+    await ctx.resume()
+  }
+}
+
 /** Pop suave — tarea completada */
-function playPop() {
+async function playPop() {
   const ctx = getAudioContext()
   if (!ctx) return
+  await ensureRunning(ctx)
 
   const osc = ctx.createOscillator()
   const gain = ctx.createGain()
@@ -39,9 +42,10 @@ function playPop() {
 }
 
 /** Ding — pomodoro completado */
-function playDing() {
+async function playDing() {
   const ctx = getAudioContext()
   if (!ctx) return
+  await ensureRunning(ctx)
 
   // Dos tonos para efecto de campana
   const freqs = [880, 1108] as const
@@ -74,6 +78,25 @@ export function useSoundFX() {
 
   const prevTransitionRef = useRef(transition)
   const prevPomodoroRef = useRef(currentPomodoro)
+
+  // Desbloquear AudioContext en el primer gesto del usuario.
+  // Chrome mantiene el contexto en 'suspended' hasta que hay interacción.
+  useEffect(() => {
+    function unlock() {
+      const ctx = getAudioContext()
+      if (ctx && ctx.state === 'suspended') {
+        ctx.resume()
+      }
+      document.removeEventListener('click', unlock)
+      document.removeEventListener('keydown', unlock)
+    }
+    document.addEventListener('click', unlock)
+    document.addEventListener('keydown', unlock)
+    return () => {
+      document.removeEventListener('click', unlock)
+      document.removeEventListener('keydown', unlock)
+    }
+  }, [])
 
   // Pop cuando aparece la pantalla de transición (tarea completada)
   useEffect(() => {

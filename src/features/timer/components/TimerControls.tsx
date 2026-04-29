@@ -1,18 +1,19 @@
-import { useAppStore } from '@/store'
+import { useAppStore, getTimerMode, isTimerRunning } from '@/store'
 
 const QUICK_DURATIONS = [5, 15, 25, 50] as const
 
 export function TimerControls() {
-  const isRunning = useAppStore((s) => s.timer.isRunning)
-  const mode = useAppStore((s) => s.timer.mode)
+  const status = useAppStore((s) => s.timer.status)
+  const mode = getTimerMode(status)
   const workTime = useAppStore((s) => s.settings.workTime)
   const breakTime = useAppStore((s) => s.settings.breakTime)
   const startTimer = useAppStore((s) => s.startTimer)
   const pauseTimer = useAppStore((s) => s.pauseTimer)
   const resetTimer = useAppStore((s) => s.resetTimer)
-  const skipToBreak = useAppStore((s) => s.skipToBreak)
+  const skipBreak = useAppStore((s) => s.skipBreak)
   const setTimerDuration = useAppStore((s) => s.setTimerDuration)
 
+  const running = isTimerRunning(status)
   const currentMinutes = mode === 'work' ? workTime : breakTime
 
   return (
@@ -20,10 +21,10 @@ export function TimerControls() {
       {/* Botones principales */}
       <div className="flex items-center gap-2">
         <button
-          onClick={isRunning ? pauseTimer : startTimer}
+          onClick={running ? pauseTimer : startTimer}
           className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl font-medium text-sm transition-all bg-primary text-white hover:opacity-90 active:scale-95"
         >
-          {isRunning ? '⏸ Pausar' : '▶ Iniciar'}
+          {running ? '⏸ Pausar' : '▶ Iniciar'}
         </button>
 
         <button
@@ -34,17 +35,19 @@ export function TimerControls() {
           ↺
         </button>
 
-        <button
-          onClick={skipToBreak}
-          title={mode === 'work' ? 'Saltar a descanso' : 'Saltar a trabajo'}
-          className="px-3 py-2.5 rounded-xl text-sm text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
-        >
-          ⏭
-        </button>
+        {(status === 'break_running' || status === 'break_paused') && (
+          <button
+            onClick={skipBreak}
+            title="Saltar descanso"
+            className="px-3 py-2.5 rounded-xl text-sm text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
+          >
+            ⏭
+          </button>
+        )}
       </div>
 
-      {/* Duraciones rápidas — solo en modo work */}
-      {mode === 'work' && (
+      {/* Duraciones rápidas — solo en modo work y cuando NO está corriendo break */}
+      {mode === 'work' && status !== 'break_running' && status !== 'break_paused' && (
         <div className="flex gap-1.5">
           {QUICK_DURATIONS.map((min) => (
             <button

@@ -1,27 +1,36 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { AppStore, Task, TimerState, BackupData } from './types'
+import { isTimerRunning, getTimerMode } from './types'
+import { timerService } from '@/features/timer/services'
 
 const DEFAULT_WORK_MINUTES = 25
 const DEFAULT_BREAK_MINUTES = 5
 
 const DEFAULT_TIMER: TimerState = {
-  isRunning: false,
-  mode: 'work',
+  status: 'idle',
   remainingSeconds: DEFAULT_WORK_MINUTES * 60,
   currentPomodoro: 0,
+}
+
+/** Fecha local del usuario en formato YYYY-MM-DD */
+function todayLocal(): string {
+  return new Date().toLocaleDateString('sv-SE')
 }
 
 function toIso(): string {
   return new Date().toISOString()
 }
 
-function todayIso(): string {
-  return new Date().toISOString().slice(0, 10) // YYYY-MM-DD
-}
-
 function uuid(): string {
   return crypto.randomUUID()
+}
+
+function breakTimeFor(workMinutes: number): number {
+  if (workMinutes >= 90) return 20
+  if (workMinutes >= 60) return 15
+  if (workMinutes >= 45) return 10
+  return DEFAULT_BREAK_MINUTES
 }
 
 export const useAppStore = create<AppStore>()(
@@ -32,7 +41,7 @@ export const useAppStore = create<AppStore>()(
       sessions: [],
       selectedTaskId: null,
       pomodorosToday: 0,
-      lastResetDate: todayIso(),
+      lastResetDate: todayLocal(),
       timer: { ...DEFAULT_TIMER },
       transition: null,
       settings: {
@@ -50,7 +59,6 @@ export const useAppStore = create<AppStore>()(
           createdAt: toIso(),
           lastWorkedAt: null,
           completedPomodoros: 0,
-          subtasks: [],
           ...taskInput,
         }
         set((s) => ({ tasks: [...s.tasks, task] }))
@@ -73,7 +81,6 @@ export const useAppStore = create<AppStore>()(
         set((s) => ({
           tasks: s.tasks.map((t) => {
             if (t.id === id) return { ...t, status }
-            // Solo una tarea puede estar in-progress
             if (status === 'in-progress' && t.status === 'in-progress') {
               return { ...t, status: 'pending' }
             }
@@ -84,173 +91,168 @@ export const useAppStore = create<AppStore>()(
 
       selectTask: (id) => {
         const { setTaskStatus, selectedTaskId } = get()
-        // Al deseleccionar, la tarea anterior vuelve a pending
         if (id === null && selectedTaskId) {
           setTaskStatus(selectedTaskId, 'pending')
         } else if (id !== null) {
-          // setTaskStatus ya resetea cualquier otra tarea in-progress
           setTaskStatus(id, 'in-progress')
         }
         set({ selectedTaskId: id })
       },
 
-      addSubtask: (taskId, title) => {
-        set((s) => ({
-          tasks: s.tasks.map((t) =>
-            t.id === taskId
-              ? {
-                  ...t,
-                  subtasks: [
-                    ...t.subtasks,
-                    { id: uuid(), title, completed: false },
-                  ],
-                }
-              : t
-          ),
-        }))
+      // ─── Timer Actions — públicas (UI) ────────────────────────────────────
+      startTimer: () => {
+        const { timer } = get()
+        const canStart =
+          timer.status === 'idle' ||
+          timer.status === 'work_ready' ||
+          timer.status === 'break_ready' ||
+          timer.status === 'work_paused' ||
+          timer.status === 'break_paused'
+
+        if (!canStart) return
+
+        const nextStatus =
+          timer.status === 'break_ready' || timer.status === 'break_paused'
+            ? 'break_running'
+            : 'work_running'
+
+        timerService.start(timer.remainingSeconds)
+        set((s) => ({ timer: { ...s.timer, status: nextStatus } }))
       },
 
-      toggleSubtask: (taskId, subtaskId) => {
-        set((s) => ({
-          tasks: s.tasks.map((t) =>
-            t.id === taskId
-              ? {
-                  ...t,
-                  subtasks: t.subtasks.map((st) =>
-                    st.id === subtaskId
-                      ? { ...st, completed: !st.completed }
-                      : st
-                  ),
-                }
-              : t
-          ),
-        }))
+      pauseTimer: () => {
+        const { timer } = get()
+        if (!isTimerRunning(timer.status)) return
+
+        const nextStatus =
+          timer.status === 'work_running' ? 'work_paused' : 'break_paused'
+
+        timerService.pause()
+        set({ timer: { ...get().timer, status: nextStatus } })
       },
-
-      // ─── Timer Actions ────────────────────────────────────────────────────
-      startTimer: () => set((s) => ({ timer: { ...s.timer, isRunning: true } })),
-
-      pauseTimer: () => set((s) => ({ timer: { ...s.timer, isRunning: false } })),
 
       resetTimer: () => {
         const { settings } = get()
-        set((s) => ({
+        timerService.reset(settings.workTime * 60)
+        set({
           timer: {
-            ...s.timer,
-            isRunning: false,
-            remainingSeconds:
-              s.timer.mode === 'work'
-                ? settings.workTime * 60
-                : settings.breakTime * 60,
+            status: 'idle',
+            remainingSeconds: settings.workTime * 60,
+            currentPomodoro: 0,
           },
-        }))
+        })
       },
 
-      skipToBreak: () => {
-        const { settings } = get()
-        set((s) => ({
-          timer: {
-            ...s.timer,
-            isRunning: false,
-            mode: s.timer.mode === 'work' ? 'break' : 'work',
-            remainingSeconds:
-              s.timer.mode === 'work'
-                ? settings.breakTime * 60
-                : settings.workTime * 60,
-          },
-        }))
-      },
+      skipBreak: () => {
+        const { timer, settings } = get()
+        const canSkip =
+          timer.status === 'break_running' || timer.status === 'break_paused'
+        if (!canSkip) return
 
-      setTimerMode: (mode) => {
-        const { settings } = get()
-        set((s) => ({
+        timerService.reset(settings.workTime * 60)
+        set({
           timer: {
-            ...s.timer,
-            isRunning: false,
-            mode,
-            remainingSeconds:
-              mode === 'work'
-                ? settings.workTime * 60
-                : settings.breakTime * 60,
+            ...get().timer,
+            status: 'work_ready',
+            remainingSeconds: settings.workTime * 60,
           },
-        }))
+        })
       },
 
       setTimerDuration: (minutes) => {
+        const { timer } = get()
+        const mode = getTimerMode(timer.status)
+        const isIdle = !isTimerRunning(timer.status)
+
+        if (!isIdle) return // solo en estados detenidos
+
         set((s) => ({
           timer: {
             ...s.timer,
-            isRunning: false,
             remainingSeconds: minutes * 60,
           },
           settings: {
             ...s.settings,
-            [s.timer.mode === 'work' ? 'workTime' : 'breakTime']: minutes,
+            [mode === 'work' ? 'workTime' : 'breakTime']: minutes,
           },
         }))
       },
 
-      tick: () => {
-        const { timer, completePomodoro } = get()
-        if (!timer.isRunning) return
-
-        if (timer.remainingSeconds <= 1) {
-          completePomodoro()
-          return
-        }
-
+      startQuickSession: (minutes) => {
+        const remaining = minutes * 60
+        timerService.start(remaining)
         set((s) => ({
-          timer: { ...s.timer, remainingSeconds: s.timer.remainingSeconds - 1 },
+          timer: {
+            ...s.timer,
+            status: 'work_running',
+            remainingSeconds: remaining,
+          },
         }))
       },
 
-      // ─── Session / Pomodoro completion ────────────────────────────────────
-      completePomodoro: () => {
-        const { timer, selectedTaskId, settings } = get()
-        const isWorkSession = timer.mode === 'work'
+      startBreak: () => {
+        const { settings } = get()
+        const remaining = settings.breakTime * 60
+        timerService.start(remaining)
+        set({
+          timer: {
+            status: 'break_running',
+            remainingSeconds: remaining,
+            currentPomodoro: get().timer.currentPomodoro,
+          },
+        })
+      },
 
-        if (isWorkSession && selectedTaskId) {
-          // Registrar sesión completada
+      // ─── Timer Actions — internas (TimerService únicamente) ───────────────
+      _syncTimerSeconds: (remainingSeconds) => {
+        set((s) => ({ timer: { ...s.timer, remainingSeconds } }))
+      },
+
+      _completePomodoro: () => {
+        const { timer, selectedTaskId, settings } = get()
+        const mode = getTimerMode(timer.status)
+
+        if (mode === 'work') {
+          // Work completado → break_ready
           const session = {
-            taskId: selectedTaskId,
+            taskId: selectedTaskId ?? '',
             duration: settings.workTime,
             completedAt: toIso(),
           }
-          set((s) => ({
-            sessions: [...s.sessions, session],
-            pomodorosToday: s.pomodorosToday + 1,
-            tasks: s.tasks.map((t) =>
-              t.id === selectedTaskId
-                ? {
-                    ...t,
-                    completedPomodoros: t.completedPomodoros + 1,
-                    lastWorkedAt: toIso(),
-                  }
-                : t
-            ),
-            timer: {
-              ...s.timer,
-              isRunning: false,
-              mode: 'break',
-              remainingSeconds: settings.breakTime * 60,
-              currentPomodoro: s.timer.currentPomodoro + 1,
-            },
-          }))
+
+          set((s) => {
+            const newSessions = [...s.sessions, session]
+            const cappedSessions = newSessions.length > 500 ? newSessions.slice(-500) : newSessions
+
+            return {
+              sessions: cappedSessions,
+              pomodorosToday: s.pomodorosToday + 1,
+              tasks: s.tasks.map((t) =>
+                t.id === selectedTaskId
+                  ? {
+                      ...t,
+                      completedPomodoros: t.completedPomodoros + 1,
+                      lastWorkedAt: toIso(),
+                    }
+                  : t
+              ),
+              timer: {
+                status: 'break_ready',
+                remainingSeconds: breakTimeFor(settings.workTime) * 60,
+                currentPomodoro: s.timer.currentPomodoro + 1,
+              },
+            }
+          })
         } else {
-          // Break terminó → volver a work
+          // Break completado → work_ready
           set((s) => ({
             timer: {
-              ...s.timer,
-              isRunning: false,
-              mode: 'work',
+              status: 'work_ready',
               remainingSeconds: settings.workTime * 60,
+              currentPomodoro: s.timer.currentPomodoro,
             },
           }))
         }
-      },
-
-      syncTimerSeconds: (remainingSeconds) => {
-        set((s) => ({ timer: { ...s.timer, remainingSeconds } }))
       },
 
       // ─── Transition ───────────────────────────────────────────────────────
@@ -274,7 +276,7 @@ export const useAppStore = create<AppStore>()(
           sessions: data.sessions ?? [],
           settings: { ...get().settings, ...data.settings },
           pomodorosToday: data.pomodorosToday ?? 0,
-          lastResetDate: data.lastResetDate ?? todayIso(),
+          lastResetDate: data.lastResetDate ?? todayLocal(),
           selectedTaskId: null,
           transition: null,
           timer: { ...DEFAULT_TIMER },
@@ -284,24 +286,66 @@ export const useAppStore = create<AppStore>()(
       // ─── Daily reset ──────────────────────────────────────────────────────
       checkDailyReset: () => {
         const { lastResetDate } = get()
-        const today = todayIso()
+        const today = todayLocal()
         if (lastResetDate !== today) {
-          set((s) => ({
+          set({
             pomodorosToday: 0,
             lastResetDate: today,
-            selectedTaskId: null,
-            timer: { ...DEFAULT_TIMER },
-            // Limpiar tareas que quedaron in-progress del día anterior
-            tasks: s.tasks.map((t) =>
-              t.status === 'in-progress' ? { ...t, status: 'pending' } : t
-            ),
-          }))
+          })
         }
       },
     }),
     {
       name: 'focusflow-store',
-      // El timer no se persiste — se resetea al reabrir la app
+      version: 1,
+      migrate: (persistedState: unknown, version) => {
+        const state = persistedState as Record<string, unknown>
+
+        // ─── Versión 0 → 1: migrar modelo de datos ────────────────────────
+        if (version < 1) {
+          // 1. Tasks: source → tags
+          if (Array.isArray(state.tasks)) {
+            state.tasks = state.tasks.map((task: any) => {
+              if (!Array.isArray(task.tags)) {
+                task.tags = task.source ? [task.source] : ['inbox']
+              }
+              return task
+            })
+          }
+
+          // 2. Timer: isRunning/mode → status
+          const timer = state.timer as any
+          if (timer && !timer.status) {
+            const wasRunning = timer.isRunning
+            const mode = timer.mode ?? 'work'
+            if (wasRunning) {
+              timer.status = mode === 'work' ? 'work_running' : 'break_running'
+            } else {
+              timer.status = 'idle'
+            }
+            if (typeof timer.currentPomodoro !== 'number') {
+              timer.currentPomodoro = 0
+            }
+          }
+
+          // 3. Settings: eliminar campos viejos, asegurar defaults
+          const oldSettings = (state.settings as any) ?? {}
+          state.settings = {
+            workTime: oldSettings.workTime ?? DEFAULT_WORK_MINUTES,
+            breakTime: oldSettings.breakTime ?? DEFAULT_BREAK_MINUTES,
+            soundEnabled: oldSettings.soundEnabled ?? true,
+            darkMode: oldSettings.darkMode ?? false,
+            ambientSound: oldSettings.ambientSound ?? 'off',
+          }
+
+          // 4. Eliminar campos V2 que ya no existen
+          delete (state as any).objectives
+          delete (state as any).stats
+          delete (state as any).transition
+        }
+
+        return state as any
+      },
       partialize: (state) => ({
         tasks: state.tasks,
         sessions: state.sessions,

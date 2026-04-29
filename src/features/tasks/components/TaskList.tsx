@@ -7,14 +7,12 @@ import { TaskItem } from './TaskItem'
 import { SourceToggle } from './SourceToggle'
 import { InboxCleanup } from './InboxCleanup'
 
-type Source = Task['source']
-
 export function TaskList() {
-  const [source, setSource] = useState<Source>('today')
+  const [tag, setTag] = useState<string>('today')
   const [cleanupSnapshot, setCleanupSnapshot] = useState<Task[] | null>(null)
   const selectedTaskId = useAppStore((s) => s.selectedTaskId)
-  const pending = useSortedTasks(source)
-  const completed = useCompletedTasks(source)
+  const pending = useSortedTasks(tag)
+  const completed = useCompletedTasks(tag)
 
   function openCleanup() {
     // Snapshot de las tareas inbox al momento de abrir
@@ -25,11 +23,11 @@ export function TaskList() {
     <>
       <div className="flex flex-col gap-4">
         <div className="flex items-center justify-between">
-          <SourceToggle value={source} onChange={setSource} />
+          <SourceToggle value={tag} onChange={setTag} />
 
           <div className="flex items-center gap-3">
             {/* Botón limpiar inbox */}
-            {source === 'inbox' && pending.length > 0 && (
+            {tag === 'inbox' && pending.length > 0 && (
               <button
                 onClick={openCleanup}
                 className="text-xs font-medium text-primary hover:opacity-75 transition-opacity"
@@ -45,12 +43,12 @@ export function TaskList() {
           </div>
         </div>
 
-        <TaskInput source={source} />
+        <TaskInput tag={tag} />
 
         <div className="flex flex-col gap-1 mt-1">
           {pending.length === 0 && completed.length === 0 && (
             <p className="text-sm text-muted-foreground text-center py-6">
-              {source === 'inbox'
+              {tag === 'inbox'
                 ? 'Inbox vacío — sin ansiedad 🎉'
                 : 'Sin tareas para hoy — añadí una arriba'}
             </p>

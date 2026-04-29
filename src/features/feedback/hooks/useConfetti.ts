@@ -4,9 +4,12 @@ const FOCUSFLOW_COLORS = ['#6366F1', '#10B981', '#F97316', '#FCD34D', '#3B82F6']
 
 /**
  * Dispara confeti suave — colores de la paleta FocusFlow.
- * Dos ráfagas desde los costados para efecto más natural.
+ * Respeta `prefers-reduced-motion: reduce` (sin confeti en ese caso).
  */
 export function fireConfetti() {
+  const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  if (prefersReduced) return
+
   const base = {
     particleCount: 60,
     spread: 55,

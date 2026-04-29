@@ -1,8 +1,4 @@
-export interface Subtask {
-  id: string
-  title: string
-  completed: boolean
-}
+// ─── Tasks ───────────────────────────────────────────────────────────────────
 
 export interface Task {
   id: string
@@ -13,9 +9,10 @@ export interface Task {
   estimatedPomodoros: number
   completedPomodoros: number
   isQuickWin: boolean
-  subtasks: Subtask[]
-  source: 'inbox' | 'today'
+  tags: string[]          // V1: 'inbox' | 'today'
 }
+
+// ─── Pomodoro / Sessions ──────────────────────────────────────────────────────
 
 export interface PomodoroSession {
   taskId: string
@@ -23,12 +20,33 @@ export interface PomodoroSession {
   completedAt: string // ISO 8601
 }
 
+// ─── Timer ───────────────────────────────────────────────────────────────────
+
+export type TimerStatus =
+  | 'idle'
+  | 'work_running'
+  | 'work_paused'
+  | 'break_ready'
+  | 'break_running'
+  | 'break_paused'
+  | 'work_ready'
+
 export interface TimerState {
-  isRunning: boolean
-  mode: 'work' | 'break'
+  status: TimerStatus
   remainingSeconds: number
-  currentPomodoro: number
+  currentPomodoro: number  // pomodoros de WORK completados en la sesión actual (desde último reset)
 }
+
+export function isTimerRunning(status: TimerStatus): boolean {
+  return status === 'work_running' || status === 'break_running'
+}
+
+export function getTimerMode(status: TimerStatus): 'work' | 'break' {
+  if (status.includes('break')) return 'break'
+  return 'work'
+}
+
+// ─── Settings ────────────────────────────────────────────────────────────────
 
 export interface Settings {
   workTime: number   // minutos
@@ -38,48 +56,52 @@ export interface Settings {
   ambientSound: 'off' | 'brown' | 'white'
 }
 
+// ─── Transition ──────────────────────────────────────────────────────────────
+
 export interface Transition {
   taskTitle: string
 }
+
+// ─── App State ───────────────────────────────────────────────────────────────
 
 export interface AppState {
   tasks: Task[]
   sessions: PomodoroSession[]
   selectedTaskId: string | null
   pomodorosToday: number
-  lastResetDate: string  // ISO 8601 — fecha del último reset
+  lastResetDate: string   // YYYY-MM-DD local del usuario
   timer: TimerState
   settings: Settings
-  transition: Transition | null  // pantalla intermedia post-enfoque (no persistida)
+  transition: Transition | null  // no persistida
 }
+
+// ─── Actions ─────────────────────────────────────────────────────────────────
 
 export interface AppActions {
   // Tasks
-  addTask: (task: Omit<Task, 'id' | 'createdAt' | 'lastWorkedAt' | 'completedPomodoros' | 'subtasks'>) => void
+  addTask: (task: Omit<Task, 'id' | 'createdAt' | 'lastWorkedAt' | 'completedPomodoros'>) => void
   updateTask: (id: string, patch: Partial<Omit<Task, 'id'>>) => void
   deleteTask: (id: string) => void
   setTaskStatus: (id: string, status: Task['status']) => void
   selectTask: (id: string | null) => void
-  addSubtask: (taskId: string, title: string) => void
-  toggleSubtask: (taskId: string, subtaskId: string) => void
 
-  // Timer
+  // Timer — públicas (llamadas por UI)
   startTimer: () => void
   pauseTimer: () => void
   resetTimer: () => void
-  skipToBreak: () => void
-  tick: () => void
-  setTimerMode: (mode: TimerState['mode']) => void
+  skipBreak: () => void
   setTimerDuration: (minutes: number) => void
+  startQuickSession: (minutes: number) => void
+  startBreak: () => void
 
-  // Sessions
-  completePomodoro: () => void
-  syncTimerSeconds: (remainingSeconds: number) => void
+  // Timer — internas (llamadas solo por TimerService)
+  _syncTimerSeconds: (remainingSeconds: number) => void
+  _completePomodoro: () => void
 
   // Settings
   updateSettings: (patch: Partial<Settings>) => void
 
-  // Transition (post-focus completion)
+  // Transition
   triggerTransition: (taskTitle: string) => void
   clearTransition: () => void
 
@@ -89,6 +111,8 @@ export interface AppActions {
   // Daily reset
   checkDailyReset: () => void
 }
+
+// ─── Backup ───────────────────────────────────────────────────────────────────
 
 export interface BackupData {
   version: number

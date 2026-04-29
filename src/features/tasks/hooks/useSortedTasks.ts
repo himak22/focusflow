@@ -2,8 +2,6 @@ import { useMemo } from 'react'
 import { useAppStore } from '@/store'
 import type { Task } from '@/store'
 
-type Source = Task['source']
-
 function sortTasks(tasks: Task[]): Task[] {
   return [...tasks].sort((a, b) => {
     // Quick wins primero
@@ -13,20 +11,20 @@ function sortTasks(tasks: Task[]): Task[] {
   })
 }
 
-export function useSortedTasks(source: Source) {
+export function useSortedTasks(tag: string) {
   const tasks = useAppStore((s) => s.tasks)
 
   return useMemo(() => {
-    const filtered = tasks.filter((t) => t.source === source && t.status !== 'completed')
+    const filtered = tasks.filter((t) => t.tags.includes(tag) && t.status !== 'completed')
     return sortTasks(filtered)
-  }, [tasks, source])
+  }, [tasks, tag])
 }
 
-export function useCompletedTasks(source: Source) {
+export function useCompletedTasks(tag: string) {
   const tasks = useAppStore((s) => s.tasks)
 
   return useMemo(
-    () => tasks.filter((t) => t.source === source && t.status === 'completed'),
-    [tasks, source]
+    () => tasks.filter((t) => t.tags.includes(tag) && t.status === 'completed'),
+    [tasks, tag]
   )
 }

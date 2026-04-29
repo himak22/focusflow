@@ -2,7 +2,18 @@ import { useAppStore } from '@/store'
 import { CompactTimer } from '@/features/timer'
 import { SettingsDialog } from '@/features/settings'
 
-export function AppHeader() {
+export type AppView = 'tasks'
+
+const NAV_ITEMS: { id: AppView; label: string }[] = [
+  { id: 'tasks', label: 'Tareas' },
+]
+
+interface Props {
+  view: AppView
+  setView: (v: AppView) => void
+}
+
+export function AppHeader({ view, setView }: Props) {
   const pomodorosToday = useAppStore((s) => s.pomodorosToday)
   const darkMode = useAppStore((s) => s.settings.darkMode)
   const updateSettings = useAppStore((s) => s.updateSettings)
@@ -16,10 +27,10 @@ export function AppHeader() {
           Focus<span className="text-primary">Flow</span>
         </span>
 
-        {/* Timer con barra circular */}
+        {/* Timer compacto */}
         <CompactTimer />
 
-        {/* Contador diario + controles */}
+        {/* Controles */}
         <div className="flex items-center gap-3">
           <span className="text-xs text-muted-foreground">
             🍅 <span className="font-medium text-foreground">{pomodorosToday}</span> hoy
@@ -33,6 +44,24 @@ export function AppHeader() {
           </button>
           <SettingsDialog />
         </div>
+      </div>
+
+      {/* Navigation tabs */}
+      <div className="max-w-2xl mx-auto px-4 flex gap-0 border-t border-border/50">
+        {NAV_ITEMS.map((item) => (
+          <button
+            key={item.id}
+            onClick={() => setView(item.id)}
+            className={[
+              'px-4 py-2 text-xs font-medium transition-colors border-b-2',
+              view === item.id
+                ? 'border-primary text-primary'
+                : 'border-transparent text-muted-foreground hover:text-foreground',
+            ].join(' ')}
+          >
+            {item.label}
+          </button>
+        ))}
       </div>
     </header>
   )

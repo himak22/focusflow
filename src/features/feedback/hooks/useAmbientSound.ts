@@ -21,7 +21,7 @@ function generateNoiseBuffer(ctx: AudioContext, type: NoiseType): AudioBuffer {
       const white = Math.random() * 2 - 1
       data[i] = (last + 0.02 * white) / 1.02
       last = data[i]
-      data[i] *= 3.5 // amplificar
+      data[i] *= 3.5
     }
   }
 
@@ -30,45 +30,41 @@ function generateNoiseBuffer(ctx: AudioContext, type: NoiseType): AudioBuffer {
 
 /**
  * Reproduce ruido de fondo (brown/white) en loop continuo.
- * Volumen bajo para no distraer — solo ambiente.
  */
 export function useAmbientSound() {
   const ambientSound = useAppStore((s) => s.settings.ambientSound)
   const ctxRef = useRef<AudioContext | null>(null)
   const sourceRef = useRef<AudioBufferSourceNode | null>(null)
-  const gainRef = useRef<GainNode | null>(null)
 
   useEffect(() => {
-    if (ambientSound === 'off') {
-      sourceRef.current?.stop()
+    function cleanup() {
+      try { sourceRef.current?.stop() } catch { /* ya detenido */ }
+      ctxRef.current?.close().catch(() => {})
       sourceRef.current = null
-      ctxRef.current?.close()
       ctxRef.current = null
+    }
+
+    if (ambientSound === 'off') {
+      cleanup()
       return
     }
 
     const ctx = new AudioContext()
     ctxRef.current = ctx
 
-    const buffer = generateNoiseBuffer(ctx, ambientSound)
+    const buffer = generateNoiseBuffer(ctx, ambientSound as NoiseType)
     const source = ctx.createBufferSource()
     source.buffer = buffer
     source.loop = true
 
     const gain = ctx.createGain()
-    gain.gain.setValueAtTime(0.07, ctx.currentTime) // muy bajo — solo ambiente
-    gainRef.current = gain
+    gain.gain.setValueAtTime(0.07, ctx.currentTime)
 
     source.connect(gain)
     gain.connect(ctx.destination)
     source.start()
     sourceRef.current = source
 
-    return () => {
-      try { source.stop() } catch { /* ya detenido */ }
-      ctx.close().catch(() => {})
-      sourceRef.current = null
-      ctxRef.current = null
-    }
+    return cleanup
   }, [ambientSound])
 }

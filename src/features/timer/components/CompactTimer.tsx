@@ -1,4 +1,4 @@
-import { useAppStore } from '@/store'
+import { useAppStore, getTimerMode } from '@/store'
 import { CircularProgress } from './CircularProgress'
 
 const WORK_COLOR = '#F97316'
@@ -15,10 +15,10 @@ export function CompactTimer() {
   const workTime = useAppStore((s) => s.settings.workTime)
   const breakTime = useAppStore((s) => s.settings.breakTime)
 
-  const isWork = timer.mode === 'work'
-  const totalSeconds = isWork ? workTime * 60 : breakTime * 60
+  const mode = getTimerMode(timer.status)
+  const totalSeconds = mode === 'work' ? workTime * 60 : breakTime * 60
   const progress = totalSeconds > 0 ? timer.remainingSeconds / totalSeconds : 1
-  const color = isWork ? WORK_COLOR : BREAK_COLOR
+  const color = mode === 'work' ? WORK_COLOR : BREAK_COLOR
 
   return (
     <div className="flex items-center gap-2">
@@ -45,7 +45,7 @@ export function CompactTimer() {
           {formatTime(timer.remainingSeconds)}
         </span>
         <span className="text-[10px] text-muted-foreground">
-          {isWork ? 'trabajo' : 'descanso'}
+          {mode === 'work' ? 'trabajo' : 'descanso'}
         </span>
       </div>
     </div>
