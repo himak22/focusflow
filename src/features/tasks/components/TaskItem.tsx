@@ -153,7 +153,7 @@ export function TaskItem({ task, isSelected }: TaskItemProps) {
               {task.title}
             </button>
 
-            {/* Pomodoros estimados */}
+            {/* Pomodoros estimados + duración personalizada */}
             {task.estimatedPomodoros > 0 && (
               <button
                 onDoubleClick={startEdit}
@@ -162,6 +162,11 @@ export function TaskItem({ task, isSelected }: TaskItemProps) {
               >
                 {task.completedPomodoros}/{task.estimatedPomodoros} 🍅
               </button>
+            )}
+            {task.duration && (
+              <span className="text-[10px] text-primary/70 flex-shrink-0 bg-primary/5 px-1.5 py-0.5 rounded">
+                ⏱ {task.duration} min
+              </span>
             )}
           </>
         )}

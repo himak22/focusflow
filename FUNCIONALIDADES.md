@@ -7,7 +7,8 @@
 ### 1.1 Crear tarea
 - Input inline en la lista (brain dump).
 - Atajo `Enter` para guardar instantáneamente, sin clicks.
-- Campos: título + estimatedPomodoros (por defecto 1) + `isQuickWin` (toggle ⚡).
+- Campos: título + **duración personalizada (opcional)** + `isQuickWin` (toggle ⚡).
+- La duración personalizada se especifica en **minutos** (ej: 45). Si no se pone, usa el default de Settings (`workTime`).
 - Las tareas se etiquetan con `tags: string[]` (V1: `inbox` | `today`).
 
 ### 1.2 Estados de tarea
@@ -52,6 +53,7 @@
 ## 2. Modo Enfoque (Focus Mode)
 
 - Seleccionar **una única tarea activa** la convierte en `in-progress`.
+- **Duración por tarea**: si la tarea tiene `duration` definido, el timer se ajusta automáticamente a esos minutos al seleccionarla (solo si el timer está detenido).
 - El resto de tareas pendientes se **ocultan** para reducir distracción.
 - Toggle "Ver tareas" muestra la lista con opacidad reducida (60%) sin salir del modo enfoque.
 - Botón "Salir del enfoque" deselecciona y vuelve todo a `pending`.
@@ -250,3 +252,9 @@ break_running ──completed──► work_ready ──start──► work_runn
 - **Empty state con personalidad**: emoji grande + mensaje amigable según contexto (inbox vs today).
 - **Micro-animations en subtareas**: `active:scale-75` en checkbox de subtarea para feedback táctil inmediato.
 - **Eliminadas tabs de navegación**: solo había una vista ("Tareas"), eran ruido visual innecesario.
+
+### 2026-04-29 (Duración por tarea)
+- Campo `duration?: number` añadido al modelo `Task`.
+- Al crear tarea: input numérico para duración en minutos (opcional).
+- Al seleccionar tarea: si tiene `duration` y el timer está detenido, el timer se ajusta automáticamente.
+- Indicador visual `⏱ X min` en TaskItem cuando la tarea tiene duración personalizada.

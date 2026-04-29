@@ -17,6 +17,7 @@ export interface Task {
   isQuickWin: boolean
   tags: string[]          // V1: 'inbox' | 'today'
   subtasks: Subtask[]     // micro-pasos para descomponer tareas abrumadoras
+  duration?: number       // minutos personalizados para esta tarea (undefined = usar settings.workTime)
 }
 
 // ─── Pomodoro / Sessions ──────────────────────────────────────────────────────
