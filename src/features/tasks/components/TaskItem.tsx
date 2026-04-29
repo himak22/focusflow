@@ -2,6 +2,12 @@ import { useState, type KeyboardEvent, useRef, useEffect } from 'react'
 import { useAppStore, isTimerRunning } from '@/store'
 import type { Task } from '@/store'
 import { SessionPicker } from '@/features/timer/components/SessionPicker'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 
 interface TaskItemProps {
   task: Task
@@ -24,6 +30,7 @@ export function TaskItem({ task, isSelected }: TaskItemProps) {
   const [expanded, setExpanded] = useState(false)
   const [subtaskInput, setSubtaskInput] = useState('')
   const [showPicker, setShowPicker] = useState(false)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
 
   const completedSubtasks = task.subtasks.filter((st) => st.completed).length
@@ -220,7 +227,7 @@ export function TaskItem({ task, isSelected }: TaskItemProps) {
               ✎
             </button>
             <button
-              onClick={() => deleteTask(task.id)}
+              onClick={() => setShowDeleteConfirm(true)}
               title="Eliminar tarea"
               className="text-muted-foreground hover:text-destructive transition-colors flex-shrink-0 text-xs px-1"
             >
@@ -240,6 +247,37 @@ export function TaskItem({ task, isSelected }: TaskItemProps) {
           />
         </div>
       )}
+
+      {/* ─── Confirmación eliminar tarea ──────────────────────────────── */}
+      <Dialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+        <DialogContent className="max-w-xs">
+          <DialogHeader>
+            <DialogTitle className="text-sm">¿Eliminar tarea?</DialogTitle>
+          </DialogHeader>
+          <div className="flex flex-col gap-4 pt-2">
+            <p className="text-sm text-muted-foreground">
+              Vas a eliminar <strong className="text-foreground">"{task.title}"</strong>. Esta acción no se puede deshacer.
+            </p>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                className="flex-1 py-2 rounded-xl text-sm font-medium bg-muted hover:bg-muted/80 text-foreground transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={() => {
+                  deleteTask(task.id)
+                  setShowDeleteConfirm(false)
+                }}
+                className="flex-1 py-2 rounded-xl text-sm font-medium bg-destructive text-white hover:opacity-90 transition-opacity"
+              >
+                Eliminar
+              </button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* ─── Sección de micro-pasos ────────────────────────────────────── */}
       {(expanded || hasSubtasks) && (

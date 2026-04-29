@@ -64,7 +64,7 @@ export function TaskInput({ tag }: TaskInputProps) {
             value={hours}
             onChange={(e) => setHours(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="h"
+            placeholder="0"
             className="w-10 bg-transparent border-b border-border text-xs text-center outline-none placeholder:text-muted-foreground/50 focus:border-primary transition-colors py-2"
             title="Horas"
           />
@@ -80,7 +80,7 @@ export function TaskInput({ tag }: TaskInputProps) {
             value={minutes}
             onChange={(e) => setMinutes(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="m"
+            placeholder="0"
             className="w-10 bg-transparent border-b border-border text-xs text-center outline-none placeholder:text-muted-foreground/50 focus:border-primary transition-colors py-2"
             title="Minutos"
           />
