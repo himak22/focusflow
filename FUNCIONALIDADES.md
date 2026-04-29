@@ -89,6 +89,7 @@ break_running ──completed──► work_ready ──start──► work_runn
 - **Reset** (`R` atajo de teclado)
 - **Skip break** — solo visible durante break
 - **Duraciones rápidas**: botones 5m, 15m, 25m, 50m (solo en modo work y detenido)
+- **Duración manual**: input numérico al lado de los botones rápidos. Escribís los minutos, Enter, y listo. Rango: 1-180 min.
 - **"Solo 5 min"** en HeroTimer: inicia sesión de 5 minutos **sin mutar** la configuración global.
 
 ### 3.4 Visual
@@ -234,3 +235,8 @@ break_running ──completed──► work_ready ──start──► work_runn
 - **Keyboard Help**: presionar `?` abre modal con todos los atajos. `Esc` o click fuera lo cierra.
 - **Sound Preview**: botones "Probar pop" y "Probar ding" en Settings para escuchar sonidos sin completar tareas.
 - Refactor: funciones `playPop` / `playDing` extraídas a `feedback/lib/soundFX.ts` para reutilización.
+
+### 2026-04-29 (Duración manual del timer)
+- Input numérico en TimerControls para ingresar minutos manualmente (1-180 min).
+- Funciona junto a los botones rápidos (5m, 15m, 25m, 50m).
+- Validación con toast de error si el valor está fuera de rango.

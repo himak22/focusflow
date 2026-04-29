@@ -1,6 +1,10 @@
+import { useState, type KeyboardEvent } from 'react'
 import { useAppStore, getTimerMode, isTimerRunning } from '@/store'
+import { toast } from 'sonner'
 
 const QUICK_DURATIONS = [5, 15, 25, 50] as const
+const MIN_MINUTES = 1
+const MAX_MINUTES = 180
 
 export function TimerControls() {
   const status = useAppStore((s) => s.timer.status)
@@ -13,8 +17,23 @@ export function TimerControls() {
   const skipBreak = useAppStore((s) => s.skipBreak)
   const setTimerDuration = useAppStore((s) => s.setTimerDuration)
 
+  const [customMinutes, setCustomMinutes] = useState('')
   const running = isTimerRunning(status)
   const currentMinutes = mode === 'work' ? workTime : breakTime
+
+  function handleCustomKeyDown(e: KeyboardEvent<HTMLInputElement>) {
+    if (e.key !== 'Enter') return
+    const val = parseInt(customMinutes, 10)
+    if (Number.isNaN(val) || val < MIN_MINUTES || val > MAX_MINUTES) {
+      toast.error('Duración inválida', {
+        description: `Ingresá un valor entre ${MIN_MINUTES} y ${MAX_MINUTES} minutos.`,
+        duration: 3000,
+      })
+      return
+    }
+    setTimerDuration(val)
+    setCustomMinutes('')
+  }
 
   return (
     <div className="flex flex-col gap-3">
@@ -46,9 +65,9 @@ export function TimerControls() {
         )}
       </div>
 
-      {/* Duraciones rápidas — solo en modo work y cuando NO está corriendo break */}
+      {/* Duraciones — botones rápidos + input custom */}
       {mode === 'work' && status !== 'break_running' && status !== 'break_paused' && (
-        <div className="flex gap-1.5">
+        <div className="flex items-center gap-1.5">
           {QUICK_DURATIONS.map((min) => (
             <button
               key={min}
@@ -63,6 +82,22 @@ export function TimerControls() {
               {min}m
             </button>
           ))}
+
+          {/* Input custom */}
+          <div className="flex items-center gap-1">
+            <input
+              type="number"
+              min={MIN_MINUTES}
+              max={MAX_MINUTES}
+              value={customMinutes}
+              onChange={(e) => setCustomMinutes(e.target.value)}
+              onKeyDown={handleCustomKeyDown}
+              placeholder="min"
+              className="w-12 bg-transparent border-b border-border text-xs text-center outline-none placeholder:text-muted-foreground/50 focus:border-primary transition-colors py-1"
+              title="Ingresá minutos manualmente y presioná Enter"
+            />
+            <span className="text-[10px] text-muted-foreground">⏎</span>
+          </div>
         </div>
       )}
     </div>
