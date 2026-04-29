@@ -21,8 +21,7 @@ export function TimerControls() {
   const running = isTimerRunning(status)
   const currentMinutes = mode === 'work' ? workTime : breakTime
 
-  function handleCustomKeyDown(e: KeyboardEvent<HTMLInputElement>) {
-    if (e.key !== 'Enter') return
+  function applyCustomDuration() {
     const val = parseInt(customMinutes, 10)
     if (Number.isNaN(val) || val < MIN_MINUTES || val > MAX_MINUTES) {
       toast.error('Duración inválida', {
@@ -33,6 +32,12 @@ export function TimerControls() {
     }
     setTimerDuration(val)
     setCustomMinutes('')
+  }
+
+  function handleCustomKeyDown(e: KeyboardEvent<HTMLInputElement>) {
+    if (e.key === 'Enter') {
+      applyCustomDuration()
+    }
   }
 
   return (
@@ -83,7 +88,7 @@ export function TimerControls() {
             </button>
           ))}
 
-          {/* Input custom */}
+          {/* Input custom + botón aplicar */}
           <div className="flex items-center gap-1">
             <input
               type="number"
@@ -94,9 +99,16 @@ export function TimerControls() {
               onKeyDown={handleCustomKeyDown}
               placeholder="min"
               className="w-12 bg-transparent border-b border-border text-xs text-center outline-none placeholder:text-muted-foreground/50 focus:border-primary transition-colors py-1"
-              title="Ingresá minutos manualmente y presioná Enter"
+              title="Ingresá minutos y presioná Enter o el botón ✓"
             />
-            <span className="text-[10px] text-muted-foreground">⏎</span>
+            <button
+              onClick={applyCustomDuration}
+              disabled={!customMinutes}
+              className="w-5 h-5 rounded flex items-center justify-center text-[10px] bg-primary text-white hover:opacity-90 active:scale-90 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+              title="Aplicar duración"
+            >
+              ✓
+            </button>
           </div>
         </div>
       )}

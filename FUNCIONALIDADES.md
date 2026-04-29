@@ -89,7 +89,7 @@ break_running ──completed──► work_ready ──start──► work_runn
 - **Reset** (`R` atajo de teclado)
 - **Skip break** — solo visible durante break
 - **Duraciones rápidas**: botones 5m, 15m, 25m, 50m (solo en modo work y detenido)
-- **Duración manual**: input numérico al lado de los botones rápidos. Escribís los minutos, Enter, y listo. Rango: 1-180 min.
+- **Duración manual**: input numérico al lado de los botones rápidos. Escribís los minutos y presionás el botón **✓** (o Enter). Rango: 1-180 min.
 - **"Solo 5 min"** en HeroTimer: inicia sesión de 5 minutos **sin mutar** la configuración global.
 
 ### 3.4 Visual
