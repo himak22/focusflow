@@ -22,11 +22,5 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
-    <script>
-      // Registrar Service Worker solo en producción
-      if ('serviceWorker' in navigator && location.hostname !== 'localhost') {
-        navigator.serviceWorker.register('/sw.js')
-      }
-    </script>
   </body>
 </html>
